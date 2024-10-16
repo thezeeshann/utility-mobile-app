@@ -1,8 +1,16 @@
-import { StyleSheet, TextInput, FlatList, Text, View,LayoutAnimation  } from "react-native";
+import {
+  StyleSheet,
+  TextInput,
+  FlatList,
+  Text,
+  View,
+  LayoutAnimation,
+} from "react-native";
 import { theme } from "../theme";
 import ShoppingListItem from "../components/ShoppingListItem";
 import { useEffect, useState } from "react";
 import { getFromStorage, saveToStorage } from "../utils/storage";
+import * as Haptics from "expo-haptics";
 
 type ShoppingListItemType = {
   id: string;
@@ -19,9 +27,9 @@ export default function App() {
 
   useEffect(() => {
     const fetchInitial = async () => {
-      const data = await getFromStorage(storageKey); 
+      const data = await getFromStorage(storageKey);
       if (data) {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setShoppingList(data);
       }
     };
@@ -40,7 +48,8 @@ export default function App() {
         ...shoppingList,
       ];
 
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       setShoppingList(newShoppingList);
       saveToStorage(storageKey, setShoppingList);
       setValue("");
@@ -50,13 +59,19 @@ export default function App() {
   const handleDelete = (id: string) => {
     const newShoppingList = shoppingList.filter((item) => item.id !== id);
     saveToStorage(storageKey, newShoppingList);
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setShoppingList(newShoppingList);
   };
 
   const handleToggleComplete = (id: string) => {
     const newShoppingList = shoppingList.map((item) => {
       if (item.id === id) {
+        if (item.completedAtTimestamp) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        } else {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+
         return {
           ...item,
           lastUpdatedTimestamp: Date.now(),
@@ -69,7 +84,7 @@ export default function App() {
       }
     });
     saveToStorage(storageKey, newShoppingList);
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setShoppingList(newShoppingList);
   };
 
